@@ -1,5 +1,4 @@
-% get individual filters and save
-% dependencies: subjects flipDir getSTA showSTA redblue
+% plots individual filters and saves 
 
 clear all;
 close all;
@@ -8,18 +7,11 @@ clc;
 % select group 
 which_group = 2;
 
-% save filter?
-flag_save = 0;
-
-% settings
-nt = 10;
-ns = 10;
-nblock = 1:6;
-pcorrect = .65;
-
-% gaussFilt - not applied
-gaussFiltP = 1;
+% gaussFilt
+gaussFiltP = 0;
 gaussSigma = 0.75;
+
+flag_save = 0; % save filter?
 
 %% Get data
 
@@ -42,6 +34,11 @@ for which_sub = submat
     direction = [];
     
     subid = group{which_sub};
+
+    nt = 10;
+    ns = 10;
+    nblock = 1:6;
+    pcorrect = .65; 
 
     data = [];
 
@@ -133,7 +130,6 @@ for which_sub = submat
     
     subplot(3,5,14);
     showSTA(staN10 + staN00flip, {'Incorrect', 'space', 'time'});
-    
 
     %% save
 

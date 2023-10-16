@@ -1,9 +1,9 @@
+% estimate thresholds by fitting weibull 
+% dependencies: psignifit toolbox
+
 clear all;
 close all;
 clc;
-
-% estimate thresholds by fitting weibull 
-% dependencies: psignifit toolbox
 
 subjects;
 
@@ -69,7 +69,8 @@ for which_block = blocks
         
         options.fixedPars = NaN(5,1);
         options.fixedPars(3) = .01;
-                
+        
+        
         % run psignifit
         result = psignifit(data, options);
         

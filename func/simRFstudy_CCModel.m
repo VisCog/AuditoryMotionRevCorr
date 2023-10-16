@@ -108,8 +108,8 @@ for seq = eseq
         R = sum(resp_R(:)); 
         
         % add internal noise
-        L = L + noiseFac.*sqrt(abs(L)).*randn(1);
-        R = R + noiseFac.*sqrt(abs(R)).*randn(1);
+        L = L + noiseFac.*sqrt((L)^2).*randn(1);
+        R = R + noiseFac.*sqrt((R)^2).*randn(1);
 
         % decision 
         if which_direction == 1 % left / stim 1 contained target

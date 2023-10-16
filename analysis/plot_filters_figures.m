@@ -15,12 +15,15 @@ ns = 10;
 
 plot_individual = 1;
 convert_to_z = 1;
+colorNeri = 0;
 
 if convert_to_z == 1
     scalelimit = 2;
 else
     scalelimit = 0.04;
 end
+
+whichfilter = 1; % 1: P / 2: correct / 3: incorrect
 
 %% individual 
 
@@ -38,7 +41,13 @@ for i = 1:ntotal
     filename = ['P_' subid '.mat'];
     load(filename); 
     
-    ThisFilter = P; 
+    if whichfilter == 1
+        ThisFilter = P; 
+    elseif whichfilter == 2
+        ThisFilter = staN11 + staN01flip;
+    elseif whichfilter == 3
+        ThisFilter = staN10 + staN00flip;
+    end
     
     if convert_to_z
         P = reshape(zscore(ThisFilter(:)), nt, ns);
@@ -52,7 +61,7 @@ for i = 1:ntotal
     
     if plot_individual
         figure(1);
-        subplot(2,nEB,i);
+        subplot(3,nEB,i);
         showSTA(P, {'P', 'space', 'time'}, scalelimit); colorbar; 
     end
     
@@ -73,10 +82,22 @@ for i = 1:nEB
     filename_SC = ['P_' subid_SC '.mat'];
     
     load(filename_EB);
-    P_EB = P;
+    if whichfilter == 1
+        P_EB = P;
+    elseif whichfilter == 2
+        P_EB = staN11 + staN01flip;
+    elseif whichfilter == 3
+        P_EB = staN10 + staN00flip;
+    end
     
     load(filename_SC);
-    P_SC = P;
+    if whichfilter == 1
+        P_SC = P;
+    elseif whichfilter == 2
+        P_SC = staN11 + staN01flip;
+    elseif whichfilter == 3
+        P_SC = staN10 + staN00flip;
+    end
     
     if convert_to_z
         P_EB = reshape(zscore(P_EB(:)), nt, ns);
@@ -86,8 +107,17 @@ for i = 1:nEB
     Pdiff = P_EB - P_SC; 
     Pdiff_all = [Pdiff_all; reshape(Pdiff, 1, nt*ns)];
     
+    if plot_individual
+        figure(1);
+        subplot(3,nEB,i+ntotal);
+        showSTA(Pdiff, {'Diff', 'space', 'time'});
+    end
+    
 end
 
+if colorNeri
+    colormap(redblueNeri) 
+end
 
 %% avg
 
@@ -187,13 +217,22 @@ elseif LRsubtract == 1
     actual_P = Pdiff_avg(:,1:ns/2) - fliplr(Pdiff_avg(:,ns/2+1:end));
 end
 
-% percentile
-sim_prctile_P = prctile(sim_Pdiff, prctilemat); 
+if statType == 1
+    
+    sim_prctile_P = prctile(sim_Pdiff, prctilemat); 
 
-smaller_P = reshape(actual_P, [1,size(actual_P,1)*size(actual_P,2)]) < sim_prctile_P(1,:);
-bigger_P = reshape(actual_P, [1,size(actual_P,1)*size(actual_P,2)]) > sim_prctile_P(2,:);
+    smaller_P = reshape(actual_P, [1,size(actual_P,1)*size(actual_P,2)]) < sim_prctile_P(1,:);
+    bigger_P = reshape(actual_P, [1,size(actual_P,1)*size(actual_P,2)]) > sim_prctile_P(2,:);
 
-sigidx_P = or(smaller_P, bigger_P);
+    sigidx_P = or(smaller_P, bigger_P);
+    
+elseif statType == 2 
+    
+    sim_SD_P = 2*std(sim_Pdiff);
+    sigidx_P = abs(reshape(actual_P,size(actual_P,1)*size(actual_P,2))) > sim_SD_P;
+    
+end
+
 
 if LRsubtract == 0
     sig_Pdiff = Pdiff_avg .* reshape(sigidx_P, [nt,ns]);
@@ -203,7 +242,6 @@ elseif LRsubtract == 1
     sig_Pdiff = Pdiff_avg .* sigidx_P;
 end
 
-% signifiance plots
 figure(2);
 subplot(1,4,4);
 showSTA(sig_Pdiff, {'sigPdiff', 'space', 'time'}, scalelimit);

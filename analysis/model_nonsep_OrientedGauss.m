@@ -1,12 +1,12 @@
 clear all;
 close all;
 
-nt = 10;
 ns = 10;
-
+nt = 10;
+    
+% fit individual filters
 subjects;
-
-which_group = 2; % 1 or 2
+which_group = 1;
 
 for which_sub = 1:8
     
@@ -21,20 +21,23 @@ for which_sub = 1:8
     load(['P_', subid, '.mat']);
     
     % initial params
-    params.sf = 0.5;
-    params.amp = 1;
-    params.a = 0;
+    params.center = 0;
+    params.width = 0.5; 
+    params.ang  = pi/4; % orientation
+    params.amp  = 0.03; % amplitude
     
     % define space
     params.xx = linspace(-1, 1, ns);
     params.yy = linspace(-1, 1, nt);
     
     % fit
-    freeList = {'1>sf>0', '0.1>amp>0', '2>=a>=-0.5'};
-    [params,err] = fitcon('fit_SurfaceModel_simple', params, freeList, P);
+    freeList = {'1.6>ang>0', '1>width>0.2', '0.1>amp>0'};
+    [params,err] = fitcon('fit_OrientedGauss', params, freeList, P);
     
     % prediction
-    Filter = func_SurfaceModel_simple(params);
+    Filter = func_OrientedGauss(params);
+    
+    crosscorr = dot(P(:), Filter(:));
     
     % plot
     figure(1);
@@ -43,6 +46,6 @@ for which_sub = 1:8
     subplot(8,2,2+(which_sub-1)*2);
     showSTA(Filter, {'pred', 'space', 'time'}, 0.03);
     
-    estmat(which_sub,:) = [params.sf params.amp params.a err];
+    estmat(which_sub,:) = [params.amp params.ang params.width err crosscorr];
     
 end

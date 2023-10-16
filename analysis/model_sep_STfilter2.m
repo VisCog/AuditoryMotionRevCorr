@@ -19,7 +19,6 @@ for which_sub = 1:8
     end
     
     subid = group{which_sub};
-    
     load(['P_', subid, '.mat']);
     
     % initial params
